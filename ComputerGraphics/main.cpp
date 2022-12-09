@@ -46,8 +46,8 @@ void InitBuffer() {
 	g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
 	pPSBlob->Release();
 
-	MeshLoader loader("C:/Users/pivor/source/repos/ComputerGraphics1/ComputerGraphics/FIO.stl");
-	loader.load(3, -.15, 0);
+	MeshLoader loader("C:/Users/pivor/OneDrive/Документы/Blender/FIO.stl");
+	loader.load(3, .15, 0);
 	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
 
 	for (int i = 0; i < loader.getTriangleCount(); i++) {
@@ -70,7 +70,7 @@ void InitBuffer() {
 	UINT offset = 0;
 	g_pImmediateContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	delete[] vertices;
+	//delete[] vertices;
 }
 
 void InitDevice() {
