@@ -1,50 +1,38 @@
-#include <d3d11.h>
-#include <d3dx11.h>
-#include <d3dcompiler.h>
-#include <xnamath.h>
-#include <iostream>
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "d3dx11.lib")
+#include "geometryData.h"
 
-// структуры
-struct SimpleVertex {
-	XMFLOAT3 Pos;
-};
 
-int vertCount = 6;
+CharWriter::CharWriter(float startX, float startY) : m_startX(startX), m_startY(startY) {
+	m_vertices = new CustomVertex[verticesLength];
+}
 
-class CharWriter {
-private:
-	int m_startX, m_startY;
-	int m_counter = 0;
-	SimpleVertex* m_vertices = new SimpleVertex[vertCount];
-	
-	void pushVertex(float x, float y) {
-		m_vertices[m_counter].Pos = XMFLOAT3(m_startX + x, m_startY + y, 1);
-		m_counter++;
+CharWriter::~CharWriter() {
+	delete[] m_vertices;
+}
+
+CustomVertex* CharWriter::getVertices() {
+	return m_vertices;
+}
+
+int CharWriter::verticesCount() {
+	return verticesLength;
+}
+
+void CharWriter::writeChar(char ch) {
+	if (ch == 'м') {
+		XMFLOAT2 vertices[] = {
+			{0, 0}, {0, 30}, {3,30},
+			{0,0}, {3,30}, {5,0},
+			{3, 30}, {7,10}, {2, 25},
+			{3, 30}, {9, 10}, {7,10},
+		};
+
+		for (XMFLOAT2 vertex : vertices) {
+			pushVertex(vertex.x, vertex.y);
+		}
 	}
+}
 
-public:
-	CharWriter(float startX, float startY) : m_startX(startX), m_startY(startY) {}
-	~CharWriter(){
-		delete[] m_vertices; 
-	}
-
-	SimpleVertex* getVertices() {
-		return m_vertices;
-	}
-
-	int verticesCount() {
-		return vertCount;
-	}
-
-	void writeChar(char ch) {
-		pushVertex(0.5, 0.5);
-		pushVertex(0, 0);
-		pushVertex(0, 0.5);
-
-		pushVertex(0.23, 0.75);
-		pushVertex(0, 0.7);
-		pushVertex(0, 0.1);
-	}
-};
+void CharWriter::pushVertex(float x, float y) {
+	m_vertices[m_counter].Pos = XMFLOAT3((m_startX + x)/100, (m_startY + y) / 100, 1);
+	m_counter++;
+}

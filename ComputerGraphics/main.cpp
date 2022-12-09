@@ -1,5 +1,3 @@
-
-#include "geometryData.cpp"
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <d3dcompiler.h>
@@ -7,6 +5,8 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dx11.lib")
 #include <string>
+#include "geometryData.h"
+#include "MeshLoader.h"
 
 HINSTANCE hinst(NULL);
 HWND hwnd(NULL);
@@ -46,27 +46,31 @@ void InitBuffer() {
 	g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
 	pPSBlob->Release();
 
-	const std::string name = "м";
-	CharWriter* context = new CharWriter(0, 0);
-	for (char ch : name) {
-		context->writeChar(ch);
+	MeshLoader loader("C:/Users/pivor/OneDrive/Документы/Blender/FIO.stl");
+	loader.load(4, .15, 0);
+	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
+
+	for (int i = 0; i < loader.getTriangleCount(); i++) {
+		vertices[i*3] = loader.getTriangles()[i].a;
+		vertices[i*3+1] = loader.getTriangles()[i].b;
+		vertices[i*3+2] = loader.getTriangles()[i].c;
 	}
 
-	n = context->verticesCount();
+	n = loader.getTriangleCount() * 3;
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
-	bd.ByteWidth = sizeof(SimpleVertex) * n;
+	bd.ByteWidth = sizeof(CustomVertex) * n;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = context->getVertices();
+	InitData.pSysMem = vertices;
 
 	g_pd3dDevice->CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
-	UINT stride = sizeof(SimpleVertex);
+	UINT stride = sizeof(CustomVertex);
 	UINT offset = 0;
 	g_pImmediateContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	delete context;
+	delete[] vertices;
 }
 
 void InitDevice() {
