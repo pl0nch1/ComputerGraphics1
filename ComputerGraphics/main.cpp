@@ -19,8 +19,8 @@ struct ConstantBuffer {
 	XMMATRIX mWorld;
 	XMMATRIX mView;
 	XMMATRIX mProjection;
+	XMFLOAT4 mLightDir;
 } cb;
-
 
 ID3D11Device* g_pd3dDevice(NULL);
 ID3D11DeviceContext* g_pImmediateContext(NULL);
@@ -30,6 +30,7 @@ ID3D11VertexShader* g_pVertexShader(NULL);
 ID3D11PixelShader* g_pPixelShader(NULL);
 ID3D11InputLayout* g_pVertexLayout(NULL);
 ID3D11Buffer* g_pVertexBuffer(NULL);
+ID3D11DepthStencilView* g_pDepthStencilView = NULL;
 ID3D11Buffer* g_pConstantBuffer(NULL);
 
 
@@ -45,6 +46,7 @@ XMMATRIX mxWorld, myWorld, mzWorld, mWorld1, mWorld;
 // функция для расчета текущих значений матриц преобразований
 void SetMatrixes()
 {
+	cb.mLightDir = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	// заполнение вспомогательной матрицы поворота вокруг оси X
 	mxWorld = XMMatrixScaling(0.5f + sin(t)/8, 0.5f + sin(t)/8, 0.5f + sin(t)/8);
 	// заполнение вспомогательной матрицы поворота вокруг оси Y
@@ -57,7 +59,7 @@ void SetMatrixes()
 		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
 	/* присвоение полю константного буфера, которое соответствуют проекционной матрице, транспонированной матрицы проекции  */
 	cb.mProjection = XMMatrixTranspose(
-		XMMatrixPerspectiveFovLH(3.14156 / 4, 640 / 480, 0.01f, 100.0f));
+		XMMatrixPerspectiveFovLH(XM_PIDIV4, 640 / 480, 0.01f, 100.0f));
 
 }
 
@@ -69,7 +71,8 @@ void InitBuffer() {
 	g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_pVertexShader);
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		// { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	g_pd3dDevice->CreateInputLayout(layout, 2, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
 	pVSBlob->Release();
@@ -145,7 +148,7 @@ void InitDevice() {
 }
 
 void Render() {
-	float ClearColor[4] = { 0.835, 0.976, 1, 1 };
+	float ClearColor[4] = { 0.7, 0.7, 0.7, 1 };
 	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
 	SetMatrixes();
 	g_pImmediateContext->VSSetShader(g_pVertexShader, NULL, 0);

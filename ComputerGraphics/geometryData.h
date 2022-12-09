@@ -10,10 +10,10 @@
 // структуры
 struct CustomVertex {
 	XMFLOAT3 Pos;
+	XMFLOAT3 Normal;
 };
 
 struct CustomTriangle {
-	CustomVertex normal;
 	CustomVertex a, b, c;
 };
 
