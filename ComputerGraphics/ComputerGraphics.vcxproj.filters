@@ -54,4 +54,9 @@
       <Filter>Исходные файлы\MeshLoader</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\OneDrive\Документы\Blender\FIO.stl">
+      <Filter>Исходные файлы</Filter>
+    </None>
+  </ItemGroup>
 </Project>

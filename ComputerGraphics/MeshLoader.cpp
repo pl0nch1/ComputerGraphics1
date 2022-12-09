@@ -30,7 +30,7 @@ MeshLoader::MeshLoader(std::string filename): m_filename(filename), m_triangleCo
 }
  
 
-void MeshLoader::load(int scale, float xOffset, float yOffset) {
+void MeshLoader::load(float scale, float xOffset, float yOffset) {
 	std::ifstream file(m_filename, std::ios::binary);
 	skipBytes(&file, 80);
 	m_triangleCount = get32UnsignedInt(&file);

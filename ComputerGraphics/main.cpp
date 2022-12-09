@@ -14,6 +14,13 @@ HWND hwnd(NULL);
 D3D_FEATURE_LEVEL featureLevels[]
 = { D3D_FEATURE_LEVEL_11_0 };
 
+// структуры
+struct ConstantBuffer {
+	XMMATRIX mWorld;
+	XMMATRIX mView;
+	XMMATRIX mProjection;
+} cb;
+
 
 ID3D11Device* g_pd3dDevice(NULL);
 ID3D11DeviceContext* g_pImmediateContext(NULL);
@@ -23,10 +30,37 @@ ID3D11VertexShader* g_pVertexShader(NULL);
 ID3D11PixelShader* g_pPixelShader(NULL);
 ID3D11InputLayout* g_pVertexLayout(NULL);
 ID3D11Buffer* g_pVertexBuffer(NULL);
+ID3D11Buffer* g_pConstantBuffer(NULL);
+
 
 const int width(640);
 const int height(480);
 int n = 0;	// кол-во вершин
+float t = 0.0f;	// угол поворота
+
+
+// структуры для вспомогательных матриц 4х4 мировго преобразования
+XMMATRIX mxWorld, myWorld, mzWorld, mWorld1, mWorld;
+
+// функция для расчета текущих значений матриц преобразований
+void SetMatrixes()
+{
+	// заполнение вспомогательной матрицы поворота вокруг оси X
+	mxWorld = XMMatrixScaling(0.5f + sin(t)/8, 0.5f + sin(t)/8, 0.5f + sin(t)/8);
+	// заполнение вспомогательной матрицы поворота вокруг оси Y
+	myWorld = XMMatrixRotationY(t/4);
+	/* присвоение полю константного буфера, которое соответствуют мировой матрице, произведения вспомогательных матриц поворотов вокруг осей Х и У */
+	cb.mWorld = XMMatrixMultiply(myWorld, mxWorld);
+	/* присвоение полю константного буфера, которое соответствует видовой матрице, транспонированной матрицы вида */
+	cb.mView = XMMatrixTranspose(XMMatrixLookAtLH(
+		XMVectorSet(0.0f, 0.0f, -15.0f, 0.0f), XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
+	/* присвоение полю константного буфера, которое соответствуют проекционной матрице, транспонированной матрицы проекции  */
+	cb.mProjection = XMMatrixTranspose(
+		XMMatrixPerspectiveFovLH(3.14156 / 4, 640 / 480, 0.01f, 100.0f));
+
+}
+
 
 
 void InitBuffer() {
@@ -47,7 +81,7 @@ void InitBuffer() {
 	pPSBlob->Release();
 
 	MeshLoader loader("C:/Users/pivor/OneDrive/Документы/Blender/FIO.stl");
-	loader.load(4, .15, 0);
+	loader.load(0.4f, .15, 0);
 	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
 
 	for (int i = 0; i < loader.getTriangleCount(); i++) {
@@ -70,7 +104,13 @@ void InitBuffer() {
 	UINT offset = 0;
 	g_pImmediateContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	delete[] vertices;
+
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	g_pd3dDevice->CreateBuffer(&bd, NULL, &g_pConstantBuffer);
+
+	//delete[] vertices;
 }
 
 void InitDevice() {
@@ -107,10 +147,14 @@ void InitDevice() {
 void Render() {
 	float ClearColor[4] = { 0.835, 0.976, 1, 1 };
 	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
+	SetMatrixes();
 	g_pImmediateContext->VSSetShader(g_pVertexShader, NULL, 0);
+	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
+	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);
 	g_pImmediateContext->PSSetShader(g_pPixelShader, NULL, 0);
 	g_pImmediateContext->Draw(n, 0);
 	g_pSwapChain->Present(0, 0);
+
 }
 
 void CleanupDevice() {
@@ -138,6 +182,7 @@ LONG WINAPI WndProc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
 	switch (m) {
 
 	case WM_PAINT:
+		t += (float)XM_PI * 0.000125f;
 		Render();
 		break;
 	case WM_DESTROY:
@@ -182,7 +227,10 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-
+		else {
+			Render();
+		}
 	}
 	return msg.wParam;
 }
+

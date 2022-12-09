@@ -1,3 +1,11 @@
+cbuffer ConstantBuffer : register(b0)
+{
+    matrix World;
+    matrix View;
+    matrix Projection;
+}
+
+
 // структура, описывающа€ тип входных данных дл€ вершинного шейдера
 struct VS_OUTPUT
 {
@@ -13,16 +21,20 @@ struct PS_OUTPUT
 };
 
 
-// основна€ функци€ вершинного шейдера, котора€ возвращает тип VS_OUTPUT
+// функци€ вершинного шейдера
 VS_OUTPUT vs_main(float4 Pos : POSITION)
 {
-    VS_OUTPUT Out; // объ€вл€ем переменную возвращаемого типа VS_OUTPUT
-    Out.Pos = Pos; // копируем в эту переменную значени€ параметра Pos, €вл€ющегос€ //координатами точки вершины объекта без изменени€
-    return Out;
+    VS_OUTPUT output = (VS_OUTPUT)0;
+    // “рансформаци€ позиции вершины при помощи умножени€ на матрицу
+    output.Pos = mul(Pos, World); // сначала на мира
+    output.Pos = mul(output.Pos, View); // затем на матрицу вида
+    output.Pos = mul(output.Pos, Projection); // и на проекционную матрицу
+    return output;
 }
 
+
 // первый вариант функции пиксельного шейдера (равномерна€ закраска треугольника), //котора€ возвращает тип PS_OUTPUT
-PS_OUTPUT ps_main(VS_OUTPUT inp)
+PS_OUTPUT ps_main(VS_OUTPUT inp) : SV_Target
 {
     // объ€вл€ем и инициализируем 1 вспомогательную переменную возвращаемого типа float
     float dis = 1;
