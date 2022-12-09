@@ -55,7 +55,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\OneDrive\Документы\Blender\FIO.stl">
+    <None Include="FIO.stl">
       <Filter>Исходные файлы</Filter>
     </None>
   </ItemGroup>

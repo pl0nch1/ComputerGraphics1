@@ -80,7 +80,7 @@ void InitBuffer() {
 	g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
 	pPSBlob->Release();
 
-	MeshLoader loader("C:/Users/pivor/OneDrive/Документы/Blender/FIO.stl");
+	MeshLoader loader("C:/Users/Yan/source/repos/ComputerGraphics1/ComputerGraphics/FIO.stl");
 	loader.load(0.4f, .15, 0);
 	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
 
@@ -182,7 +182,7 @@ LONG WINAPI WndProc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
 	switch (m) {
 
 	case WM_PAINT:
-		t += (float)XM_PI * 0.000125f;
+		t += (float)XM_PI * 0.00125f;
 		Render();
 		break;
 	case WM_DESTROY:

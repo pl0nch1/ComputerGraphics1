@@ -166,7 +166,7 @@
     <ClInclude Include="MeshLoader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\OneDrive\Документы\Blender\FIO.stl" />
+    <None Include="FIO.stl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
