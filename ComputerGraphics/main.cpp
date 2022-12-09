@@ -47,7 +47,7 @@ void InitBuffer() {
 	pPSBlob->Release();
 
 	MeshLoader loader("C:/Users/pivor/OneDrive/Документы/Blender/FIO.stl");
-	loader.load(3, .15, 0);
+	loader.load(3, -.15, 0);
 	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
 
 	for (int i = 0; i < loader.getTriangleCount(); i++) {
