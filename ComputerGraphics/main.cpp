@@ -89,7 +89,7 @@ void InitBuffer() {
 	g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
 	pPSBlob->Release();
 
-	MeshLoader loader("mon.stl");
+	MeshLoader loader("name.stl");
 	loader.load(0.4f, .15, 0);
 	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
 

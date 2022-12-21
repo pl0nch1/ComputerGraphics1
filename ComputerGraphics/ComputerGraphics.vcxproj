@@ -167,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\OneDrive\Документы\hru.stl" />
+    <None Include="..\..\..\..\OneDrive\Документы\name.stl" />
     <None Include="FIO.stl" />
     <None Include="mon.stl" />
   </ItemGroup>
