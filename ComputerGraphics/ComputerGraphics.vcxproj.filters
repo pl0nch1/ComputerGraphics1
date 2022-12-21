@@ -58,5 +58,8 @@
     <None Include="..\..\..\..\OneDrive\Документы\Blender\FIO.stl">
       <Filter>Исходные файлы</Filter>
     </None>
+    <None Include="..\..\..\..\OneDrive\Документы\name.stl">
+      <Filter>Исходные файлы</Filter>
+    </None>
   </ItemGroup>
 </Project>
