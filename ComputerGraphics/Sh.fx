@@ -1,12 +1,11 @@
-static const float4 Ldir = {1.0f, 1.0f, -1.0f, 1.0f };
+static const float4 Ldir = {1.0f, 0.0f, -1.0f, 1.0f };
+static const float4 Ldir2 = {-1.0f, 0.0f, -1.0f, 1.0f };
 
 cbuffer ConstantBuffer : register(b0)
 {
     row_major float4x4 World;
     row_major float4x4 View;
     row_major float4x4 Projection;
-    float4 vLightDir;
-    float4 vLightColor;           // ÷вет источника света
 }
 
 struct VS_INPUT
@@ -51,6 +50,6 @@ PS_OUTPUT ps_main(VS_OUTPUT inp) : SV_Target
     float dis = 1;
     PS_OUTPUT Pout; // объ€вл€ем переменную возвращаемого типа PS_OUTPUT
    // присваиваем этой переменной значение красного цвета отображаемого пиксел€
-    Pout.Color = float4(0.1,0.1,0.1,1) + dot(Ldir, inp.Norm) * float4(1,0.6,0.6,1);
+    Pout.Color =  dot(Ldir, inp.Norm) * float4(1,0.0,0.0,1) + dot(Ldir2, inp.Norm) * float4(0,1,0,1);
     return Pout;
 }
