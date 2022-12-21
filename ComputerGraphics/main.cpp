@@ -13,15 +13,12 @@ HWND hwnd(NULL);
 
 D3D_FEATURE_LEVEL featureLevels[]
 = { D3D_FEATURE_LEVEL_11_0 };
-XMFLOAT4 vLightDirs(0.0f, 1.0f, -1.0f, 1.0f);           // Направление света (позиция источников)
-XMFLOAT4 vLightColors(1.0f, 1.0f, 0.0f, 1.0f);         // Цвет источников
+
 // структуры
 struct ConstantBuffer {
 	XMMATRIX mWorld;
 	XMMATRIX mView;
 	XMMATRIX mProjection;
-	XMFLOAT4 vLightColor;
-	XMFLOAT4 vLightDir;
 } cb;
 
 ID3D11Device* g_pd3dDevice(NULL);
@@ -36,6 +33,8 @@ ID3D11DepthStencilView* g_pDepthStencilView(NULL);
 ID3D11Texture2D* g_pDepthStencil(NULL); // текстура
 ID3D11Buffer* g_pConstantBuffer(NULL);
 ID3D11RasterizerState* g_pRasterState(NULL);
+ID3D11ShaderResourceView* g_pTextureRV = NULL; 	// Объект текстуры
+ID3D11SamplerState* g_pSamplerLinear = NULL; 	/* Параметры наложения текстуры */
 
 
 
@@ -51,8 +50,6 @@ XMMATRIX mxWorld, myWorld, mzWorld, mWorld1, mWorld;
 // функция для расчета текущих значений матриц преобразований
 void SetMatrixes()
 {
-	cb.vLightDir = vLightDirs;
-	cb.vLightColor = vLightColors;
 	// заполнение вспомогательной матрицы поворота вокруг оси X
 	mxWorld = XMMatrixScaling(0.5f + sin(t)/8, 0.5f + sin(t)/8, 0.5f + sin(t)/8);
 	// заполнение вспомогательной матрицы поворота вокруг оси Y
@@ -66,7 +63,6 @@ void SetMatrixes()
 	/* присвоение полю константного буфера, которое соответствуют проекционной матрице, транспонированной матрицы проекции  */
 	cb.mProjection = 
 		XMMatrixPerspectiveFovLH(XM_PIDIV4, 640 / 480, 0.01f, 100.0f);
-
 }
 
 
@@ -78,9 +74,10 @@ void InitBuffer() {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		// { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	g_pd3dDevice->CreateInputLayout(layout, 2, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
+	g_pd3dDevice->CreateInputLayout(layout, 3, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
 	pVSBlob->Release();
 	g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
 
@@ -119,7 +116,15 @@ void InitBuffer() {
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	g_pd3dDevice->CreateBuffer(&bd, NULL, &g_pConstantBuffer);
 
-	//delete[] vertices;
+	// загрузка текстуры из файла text1.JPG
+	D3DX11CreateShaderResourceViewFromFile(g_pd3dDevice, "pic1.jpg",
+		NULL, NULL, &g_pTextureRV, NULL);
+	// Создание структуры для описания параметров наложения текстуры
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;	// Тип фильтрации
+	g_pd3dDevice->CreateSamplerState(&sampDesc, &g_pSamplerLinear);
+
 }
 
 void InitDevice() {
@@ -196,6 +201,10 @@ void Render() {
 		g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	SetMatrixes();
 	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
+	//передача текстуры в пиксельный шейдер
+	g_pImmediateContext->PSSetShaderResources(0, 1, &g_pTextureRV);
+	//передача сэмплера в пиксельный шейдер
+	g_pImmediateContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
 	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);
 	g_pImmediateContext->VSSetShader(g_pVertexShader, NULL, 0);
 	g_pImmediateContext->PSSetShader(g_pPixelShader, NULL, 0);

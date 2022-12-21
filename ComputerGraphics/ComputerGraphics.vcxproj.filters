@@ -29,6 +29,9 @@
     <Image Include="ComputerGraphics.ico">
       <Filter>Файлы ресурсов</Filter>
     </Image>
+    <Image Include="pic1.jpg">
+      <Filter>Исходные файлы</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

@@ -10,6 +10,7 @@
 // структуры
 struct CustomVertex {
 	XMFLOAT3 Pos;
+	XMFLOAT2 Tex;     // координаты текстуры
 	XMFLOAT3 Normal;
 };
 

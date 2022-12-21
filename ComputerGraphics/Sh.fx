@@ -1,17 +1,22 @@
-static const float4 Ldir = {1.0f, 1.0f, -1.0f, 1.0f };
+static const float4 Ldir = {1.0f, 1.0f, -1.0f, 1.0f }; 
+static const float4 vLightColor = { .3, .3, .3, 1 };/*статическая константа с вектором
+ цветовых компонент света*/
+
 
 cbuffer ConstantBuffer : register(b0)
 {
     row_major float4x4 World;
     row_major float4x4 View;
     row_major float4x4 Projection;
-    float4 vLightDir;
-    float4 vLightColor;           // Цвет источника света
 }
+
+Texture2D txDiffuse : register(t0);   // регистр для получения текстуры     
+SamplerState samLinear: register(s0);  // регистр для получения сэмпла     
 
 struct VS_INPUT
 {
     float4 Pos : POSITION;
+    float2 Tex : TEX;
     float3 Norm : NORMAL;
 };
 
@@ -20,7 +25,8 @@ struct VS_OUTPUT
 {
     // задаем поле как вектор из четыре переменных, которые описывают координаты точки
     float4 Pos : SV_POSITION;
-    float3 Norm : TEXCOORD0;
+    float2 Tex : TEXCOORD0;
+    float3 Norm : TEXCOORD1;
 };
 
 // структура, описывающая тип входных данных для пиксельного шейдера
@@ -40,6 +46,7 @@ VS_OUTPUT vs_main(VS_INPUT input)
     output.Pos = mul(output.Pos, View); // затем на матрицу вида
     output.Pos = mul(output.Pos, Projection); // и на проекционную матрицу
     output.Norm = mul(input.Norm, World);
+    output.Tex = input.Tex;  // текстурные координаты не меняются 
     return output;
 }
 
@@ -51,6 +58,7 @@ PS_OUTPUT ps_main(VS_OUTPUT inp) : SV_Target
     float dis = 1;
     PS_OUTPUT Pout; // объявляем переменную возвращаемого типа PS_OUTPUT
    // присваиваем этой переменной значение красного цвета отображаемого пикселя
-    Pout.Color = float4(0.1,0.1,0.1,1) + dot(Ldir, inp.Norm) * float4(1,0.6,0.6,1);
+    Pout.Color = txDiffuse.Sample(samLinear, inp.Tex) + dot(Ldir, inp.Norm) * vLightColor;
+    Pout.Color.a = 1;
     return Pout;
 }

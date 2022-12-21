@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="ComputerGraphics.ico" />
+    <Image Include="pic1.jpg" />
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
