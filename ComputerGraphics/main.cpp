@@ -13,13 +13,15 @@ HWND hwnd(NULL);
 
 D3D_FEATURE_LEVEL featureLevels[]
 = { D3D_FEATURE_LEVEL_11_0 };
-
+XMFLOAT4 vLightDirs(0.0f, 1.0f, -1.0f, 1.0f);           // Направление света (позиция источников)
+XMFLOAT4 vLightColors(1.0f, 1.0f, 0.0f, 1.0f);         // Цвет источников
 // структуры
 struct ConstantBuffer {
 	XMMATRIX mWorld;
 	XMMATRIX mView;
 	XMMATRIX mProjection;
-	XMFLOAT4 mLightDir;
+	XMFLOAT4 vLightColor;
+	XMFLOAT4 vLightDir;
 } cb;
 
 ID3D11Device* g_pd3dDevice(NULL);
@@ -30,8 +32,11 @@ ID3D11VertexShader* g_pVertexShader(NULL);
 ID3D11PixelShader* g_pPixelShader(NULL);
 ID3D11InputLayout* g_pVertexLayout(NULL);
 ID3D11Buffer* g_pVertexBuffer(NULL);
-ID3D11DepthStencilView* g_pDepthStencilView = NULL;
+ID3D11DepthStencilView* g_pDepthStencilView(NULL);
+ID3D11Texture2D* g_pDepthStencil(NULL); // текстура
 ID3D11Buffer* g_pConstantBuffer(NULL);
+ID3D11RasterizerState* g_pRasterState(NULL);
+
 
 
 const int width(640);
@@ -46,7 +51,8 @@ XMMATRIX mxWorld, myWorld, mzWorld, mWorld1, mWorld;
 // функция для расчета текущих значений матриц преобразований
 void SetMatrixes()
 {
-	cb.mLightDir = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	cb.vLightDir = vLightDirs;
+	cb.vLightColor = vLightColors;
 	// заполнение вспомогательной матрицы поворота вокруг оси X
 	mxWorld = XMMatrixScaling(0.5f + sin(t)/8, 0.5f + sin(t)/8, 0.5f + sin(t)/8);
 	// заполнение вспомогательной матрицы поворота вокруг оси Y
@@ -54,12 +60,12 @@ void SetMatrixes()
 	/* присвоение полю константного буфера, которое соответствуют мировой матрице, произведения вспомогательных матриц поворотов вокруг осей Х и У */
 	cb.mWorld = XMMatrixMultiply(myWorld, mxWorld);
 	/* присвоение полю константного буфера, которое соответствует видовой матрице, транспонированной матрицы вида */
-	cb.mView = XMMatrixTranspose(XMMatrixLookAtLH(
+	cb.mView = XMMatrixLookAtLH(
 		XMVectorSet(0.0f, 0.0f, -15.0f, 0.0f), XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
-		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
+		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 	/* присвоение полю константного буфера, которое соответствуют проекционной матрице, транспонированной матрицы проекции  */
-	cb.mProjection = XMMatrixTranspose(
-		XMMatrixPerspectiveFovLH(XM_PIDIV4, 640 / 480, 0.01f, 100.0f));
+	cb.mProjection = 
+		XMMatrixPerspectiveFovLH(XM_PIDIV4, 640 / 480, 0.01f, 100.0f);
 
 }
 
@@ -72,7 +78,7 @@ void InitBuffer() {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		// { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	g_pd3dDevice->CreateInputLayout(layout, 2, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
 	pVSBlob->Release();
@@ -83,7 +89,7 @@ void InitBuffer() {
 	g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
 	pPSBlob->Release();
 
-	MeshLoader loader("C:/Users/Yan/source/repos/ComputerGraphics1/ComputerGraphics/FIO.stl");
+	MeshLoader loader("mon.stl");
 	loader.load(0.4f, .15, 0);
 	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
 
@@ -129,13 +135,6 @@ void InitDevice() {
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = TRUE;
 
-	D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, featureLevels, 1, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, NULL, &g_pImmediateContext);
-
-	ID3D11Texture2D* pBackBuffer = NULL;
-	g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
-	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_pRenderTargetView);
-	g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, NULL);
-
 	D3D11_VIEWPORT vp;
 	vp.Width = width;
 	vp.Height = height;
@@ -144,19 +143,65 @@ void InitDevice() {
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 
+	D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, featureLevels, 1, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, NULL, &g_pImmediateContext);
+
+	ID3D11Texture2D* pBackBuffer = NULL;
+	g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
+	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_pRenderTargetView);
+
+	D3D11_RASTERIZER_DESC desc;
+	ZeroMemory(&desc, sizeof(D3D11_RASTERIZER_DESC));
+	desc.FillMode = D3D11_FILL_SOLID;
+	desc.CullMode = D3D11_CULL_BACK;
+	g_pd3dDevice->CreateRasterizerState(&desc, &g_pRasterState);
+
+	// Переходим к созданию буфера глубин
+ // Создаем текстуру-описание буфера глубин
+	D3D11_TEXTURE2D_DESC descDepth;     // Структура с параметрами
+	ZeroMemory(&descDepth, sizeof(descDepth));
+	descDepth.Width = width;            // ширина и
+	descDepth.Height = height;    // высота текстуры
+	descDepth.MipLevels = 1;            // уровень интерполяции
+	descDepth.ArraySize = 1;
+	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // формат (размер пикселя)
+	descDepth.SampleDesc.Count = 1;
+	descDepth.SampleDesc.Quality = 0;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;         // вид - буфер глубин
+	descDepth.CPUAccessFlags = 0;
+	descDepth.MiscFlags = 0;
+	// При помощи заполненной структуры-описания создаем объект текстуры
+	g_pd3dDevice->CreateTexture2D(&descDepth, NULL, &g_pDepthStencil);
+
+	// Теперь надо создать сам объект буфера глубин
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;            // Структура с параметрами
+	ZeroMemory(&descDSV, sizeof(descDSV));
+	descDSV.Format = descDepth.Format;         // формат как в текстуре
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0;
+	// При помощи заполненной структуры-описания и текстуры создаем объект буфера глубин
+	g_pd3dDevice->CreateDepthStencilView(g_pDepthStencil, &descDSV, &g_pDepthStencilView);
+
+
+	g_pImmediateContext->OMSetRenderTargets(1,
+		&g_pRenderTargetView, g_pDepthStencilView);
+	// Подключаем вьюпорт к контексту устройства
 	g_pImmediateContext->RSSetViewports(1, &vp);
 }
 
 void Render() {
-	float ClearColor[4] = { 0.7, 0.7, 0.7, 1 };
+	float ClearColor[4] = { 1, 1, 0.7, 1 };
 	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
+	g_pImmediateContext->ClearDepthStencilView(
+		g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	SetMatrixes();
-	g_pImmediateContext->VSSetShader(g_pVertexShader, NULL, 0);
 	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
 	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);
+	g_pImmediateContext->VSSetShader(g_pVertexShader, NULL, 0);
 	g_pImmediateContext->PSSetShader(g_pPixelShader, NULL, 0);
 	g_pImmediateContext->Draw(n, 0);
 	g_pSwapChain->Present(0, 0);
+
 
 }
 
@@ -185,7 +230,7 @@ LONG WINAPI WndProc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
 	switch (m) {
 
 	case WM_PAINT:
-		t += (float)XM_PI * 0.00125f;
+		t += (float)XM_PI * 0.000125f;
 		Render();
 		break;
 	case WM_DESTROY:

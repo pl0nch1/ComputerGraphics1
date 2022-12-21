@@ -166,7 +166,9 @@
     <ClInclude Include="MeshLoader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\OneDrive\Документы\hru.stl" />
     <None Include="FIO.stl" />
+    <None Include="mon.stl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

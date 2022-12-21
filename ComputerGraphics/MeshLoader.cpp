@@ -40,8 +40,8 @@ void MeshLoader::load(float scale, float xOffset, float yOffset) {
 		XMFLOAT3 normalVector = { get32Float(&file), get32Float(&file), get32Float(&file) };
 		CustomVertex a = { {xOffset + get32Float(&file) / scale, yOffset + get32Float(&file) / scale, get32Float(&file) / scale}, normalVector };
 		// Swap vertices to flip normals
-		CustomVertex c = { {xOffset+get32Float(&file) / scale, yOffset+get32Float(&file) / scale, get32Float(&file) / scale}, normalVector };
 		CustomVertex b = { {xOffset+get32Float(&file) / scale, yOffset+get32Float(&file) / scale, get32Float(&file) / scale}, normalVector };
+		CustomVertex c = { {xOffset+get32Float(&file) / scale, yOffset+get32Float(&file) / scale, get32Float(&file) / scale}, normalVector };
 		m_triangles[i] = { a, b, c };
 		skipBytes(&file, 2);
 	}

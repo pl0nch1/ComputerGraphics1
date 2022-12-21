@@ -58,5 +58,11 @@
     <None Include="FIO.stl">
       <Filter>Исходные файлы</Filter>
     </None>
+    <None Include="..\..\..\..\OneDrive\Документы\hru.stl">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="mon.stl">
+      <Filter>Исходные файлы</Filter>
+    </None>
   </ItemGroup>
 </Project>
