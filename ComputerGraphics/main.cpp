@@ -46,7 +46,7 @@ void InitBuffer() {
 	g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
 	pPSBlob->Release();
 
-	MeshLoader loader("C:/Users/pivor/OneDrive/Документы/Blender/FIO.stl");
+	MeshLoader loader("name.stl");
 	loader.load(3, -.15, 0);
 	CustomVertex* vertices = new CustomVertex[loader.getTriangleCount() * 3];
 
