@@ -150,7 +150,6 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="geometryData.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeshLoader.cpp" />
   </ItemGroup>
@@ -167,9 +166,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\OneDrive\Документы\hru.stl" />
-    <None Include="..\..\..\..\OneDrive\Документы\name.stl" />
-    <None Include="FIO.stl" />
-    <None Include="mon.stl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

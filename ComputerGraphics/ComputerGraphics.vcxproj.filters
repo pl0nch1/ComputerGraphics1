@@ -34,9 +34,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="geometryData.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="MeshLoader.cpp">
       <Filter>Исходные файлы\MeshLoader</Filter>
     </ClCompile>
@@ -55,16 +52,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FIO.stl">
-      <Filter>Исходные файлы</Filter>
-    </None>
     <None Include="..\..\..\..\OneDrive\Документы\hru.stl">
-      <Filter>Исходные файлы</Filter>
-    </None>
-    <None Include="mon.stl">
-      <Filter>Исходные файлы</Filter>
-    </None>
-    <None Include="..\..\..\..\OneDrive\Документы\name.stl">
       <Filter>Исходные файлы</Filter>
     </None>
   </ItemGroup>

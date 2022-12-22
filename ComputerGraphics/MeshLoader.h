@@ -9,6 +9,7 @@ private:
 	unsigned int m_triangleCount;
 	CustomTriangle* m_triangles;
 public:
+	~MeshLoader();
 	MeshLoader(std::string filepath);
 	void load(float scale, float xOffset, float yOffset);
 	const CustomTriangle* getTriangles();

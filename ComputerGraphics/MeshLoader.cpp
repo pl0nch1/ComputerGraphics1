@@ -47,3 +47,8 @@ void MeshLoader::load(float scale, float xOffset, float yOffset) {
 	}
 	file.close();
 }
+
+MeshLoader::~MeshLoader()
+{
+	delete[] m_triangles;
+}
