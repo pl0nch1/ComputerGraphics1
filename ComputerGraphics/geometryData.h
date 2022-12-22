@@ -16,23 +16,3 @@ struct CustomVertex {
 struct CustomTriangle {
 	CustomVertex a, b, c;
 };
-
-class CharWriter {
-private:
-	int m_startX, m_startY;
-	int m_counter = 0;
-	int verticesLength = 3 * 100;
-	CustomVertex* m_vertices;
-
-	void pushVertex(float x, float y);
-
-public:
-	CharWriter(float startX, float startY);
-	~CharWriter();
-
-	CustomVertex* getVertices();
-
-	int verticesCount();
-
-	void writeChar(char ch);
-};
